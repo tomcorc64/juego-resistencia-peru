@@ -2099,13 +2099,13 @@
       if (gameState.level === 3) lvlName = 'TARAPOTO';
 
       if (type === 'tutorial') {
-        text = "¡He completado el tutorial de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru";
+        text = "¡He completado el tutorial de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://tomcorc64.github.io/juego-resistencia-peru";
       } else if (type === 'level-win') {
-        text = `¡He logrado ${gameState.score} puntos y completado el reto en el nivel ${lvlName} de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru`;
+        text = `¡He logrado ${gameState.score} puntos y completado el reto en el nivel ${lvlName} de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://tomcorc64.github.io/juego-resistencia-peru`;
       } else if (type === 'gameover') {
-        text = `¡He logrado ${gameState.score} puntos en el nivel ${lvlName} de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru`;
+        text = `¡He logrado ${gameState.score} puntos en el nivel ${lvlName} de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://tomcorc64.github.io/juego-resistencia-peru`;
       } else if (type === 'victory') {
-        text = `¡He logrado la VICTORIA ABSOLUTA con ${gameState.score} puntos en Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru`;
+        text = `¡He logrado la VICTORIA ABSOLUTA con ${gameState.score} puntos en Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://tomcorc64.github.io/juego-resistencia-peru`;
       }
 
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
