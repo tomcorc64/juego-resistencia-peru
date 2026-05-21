@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reto Resistencia Perú</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Press Start 2P', cursive;
+      background-color: #000;
+      color: #33ff33;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* CRT Scanline and Flicker Overlay */
+    body::after {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+      z-index: 2;
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background-color: #000;
+      pointer-events: none;
+    }
+
+    #game-container {
+      width: 95%;
+      max-width: 520px;
+      border: 6px solid #33ff33;
+      padding: 24px;
+      background: rgba(10, 10, 15, 0.9);
+      position: relative;
+      z-index: 10;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #33ff33, inset 0 0 15px rgba(51, 255, 51, 0.3);
+      max-height: 95vh;
+      overflow-y: auto;
+    }
+
+    /* Custom Scrollbar for Retro feel */
+    #game-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #game-container::-webkit-scrollbar-track {
+      background: #111;
+    }
+
+    #game-container::-webkit-scrollbar-thumb {
+      background: #33ff33;
+      border: 2px solid #111;
+    }
+
+    h1,
+    h2,
+    h3 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    .neon-title {
+      color: #ff007f;
+      text-shadow: 0 0 8px #ff007f;
+      font-size: 16px;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Screen Flash FX classes */
+    .flash-success {
+      animation: flashGreen 0.2s ease-out;
+    }
+
+    .flash-error {
+      animation: flashRed 0.2s ease-out;
+    }
+
+    @keyframes flashGreen {
+      0% {
+        background-color: rgba(46, 204, 113, 0.5);
+      }
+
+      100% {
+        background-color: transparent;
+      }
+    }
+
+    @keyframes flashRed {
+      0% {
+        background-color: rgba(231, 76, 60, 0.5);
+      }
+
+      100% {
+        background-color: transparent;
+      }
+    }
+
+    /* Buttons */
+    button {
+      font-family: 'Press Start 2P', cursive;
+      background-color: #15151c;
+      color: #33ff33;
+      border: 3px solid #33ff33;
+      padding: 12px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 9px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 0 #000;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    button:hover {
+      background-color: #002208;
+      color: #00ff66;
+      border-color: #00ff66;
+      box-shadow: 0 4px 0 #000, 0 0 8px rgba(0, 255, 102, 0.3);
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    button:disabled {
+      color: #555 !important;
+      border-color: #555 !important;
+      background-color: #111 !important;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button.wrong-option {
+      background-color: #550000 !important;
+      border-color: #ff0000 !important;
+      color: #ff0000 !important;
+    }
+
+    button.share-btn {
+      border-color: #25d366;
+      color: #25d366;
+    }
+
+    button.share-btn:hover {
+      background-color: #002c0c;
+      color: #2bff6e;
+      border-color: #2bff6e;
+      box-shadow: 0 4px 0 #000, 0 0 8px rgba(43, 255, 110, 0.3);
+    }
+
+    /* Global floating Audio button */
+    #audio-toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+      width: 40px;
+      height: 40px;
+      background: #111;
+      border: 3px solid #33ff33;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      box-shadow: 0 4px 0 #000;
+      transition: transform 0.1s;
+    }
+
+    #audio-toggle:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #000;
+    }
+
+    /* CSS Resistor Art */
+    .resistor-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .lead-left,
+    .lead-right {
+      width: 35px;
+      height: 4px;
+      background: #7f8c8d;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+    }
+
+    .resistor-body {
+      display: flex;
+      justify-content: space-between;
+      background: #eebb88;
+      /* Classic ceramic/tan color */
+      height: 46px;
+      width: 130px;
+      border-radius: 10px;
+      padding: 0 14px;
+      position: relative;
+      box-shadow: inset 0 3px 5px rgba(255, 255, 255, 0.4), inset 0 -3px 5px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.4);
+      border: 2px solid #6b4c2b;
+    }
+
+    .resistor-body::before,
+    .resistor-body::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      width: 14px;
+      height: 46px;
+      background: #eebb88;
+      border: 2px solid #6b4c2b;
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+    .resistor-body::before {
+      left: -6px;
+    }
+
+    .resistor-body::after {
+      right: -6px;
+    }
+
+    .band {
+      height: 100%;
+      width: 9px;
+      box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.3), inset -1px 0 2px rgba(255, 255, 255, 0.2);
+      z-index: 2;
+    }
+
+    /* Shake Animation */
+    .shake {
+      animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+      transform: translate3d(0, 0, 0);
+    }
+
+    @keyframes shake {
+
+      10%,
+      90% {
+        transform: translate3d(-3px, 0, 0);
+      }
+
+      20%,
+      80% {
+        transform: translate3d(5px, 0, 0);
+      }
+
+      30%,
+      50%,
+      70% {
+        transform: translate3d(-8px, 0, 0);
+      }
+
+      40%,
+      60% {
+        transform: translate3d(8px, 0, 0);
+      }
+    }
+
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      height: 18px;
+      border: 3px solid #33ff33;
+      background-color: #0b0b0e;
+      position: relative;
+      margin: 15px 0;
+      border-radius: 2px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #33ff33, #00ffaa);
+      box-shadow: 0 0 6px #33ff33;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8px;
+      color: #fff;
+      text-shadow: 1px 1px 1px #000;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Guide & Calculator inside Tutorial */
+    .tutorial-guide {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px dashed #00e5ff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 18px;
+    }
+
+    .band-selectors {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .band-sel-btn {
+      font-size: 7px;
+      padding: 8px 4px;
+      border: 2px solid #555;
+      background-color: #222;
+      color: #888;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+      text-transform: uppercase;
+      box-shadow: none;
+      margin: 0;
+    }
+
+    .band-sel-btn.active {
+      border-color: #00e5ff;
+      color: #00e5ff;
+      background-color: #001f2b;
+      box-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .color-btn {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 7px;
+      padding: 8px 1px;
+      text-align: center;
+      border: 2px solid #444;
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .color-btn:hover {
+      border-color: #00e5ff;
+      transform: scale(1.05);
+    }
+
+    /* Overlay modal */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      border-radius: 6px;
+    }
+
+    .modal-content {
+      border: 4px solid #ff00ff;
+      background: #09090d;
+      padding: 20px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 0 15px #ff00ff;
+      border-radius: 8px;
+    }
+
+    .quote-text {
+      font-size: 7px;
+      line-height: 1.6;
+      color: #fff;
+      margin-bottom: 10px;
+      border-left: 3px solid #ff00ff;
+      padding-left: 8px;
+    }
+
+    /* Credits movie crawl */
+    .credits-viewport {
+      height: 180px;
+      overflow: hidden;
+      position: relative;
+      border: 3px solid #ff00ff;
+      background: rgba(0, 0, 0, 0.85);
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+
+    #credits-scroller {
+      position: absolute;
+      width: 100%;
+      top: 180px;
+      line-height: 1.8;
+      font-size: 8px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .heart-icon {
+      vertical-align: middle;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <div id="audio-toggle" onclick="AudioManager.toggleMute()">
+    <svg id="audio-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#33ff33" stroke-width="2"
+      stroke-linecap="square">
+      <!-- Starts Muted -->
+      <path d="M11 5 L6 9 H2 V15 H6 L11 19 V5 Z" fill="#111" />
+      <line x1="22" y1="9" x2="16" y2="15" />
+      <line x1="16" y1="9" x2="22" y2="15" />
+    </svg>
+  </div>
+
+  <div id="game-container">
+    <!-- Pantalla Inicial y Tutorial -->
+    <div id="start-screen">
+      <h1 class="neon-title">RETO RESISTENCIA PERÚ</h1>
+      <p style="font-size: 7px; text-align: center; color: #00e5ff; margin-bottom: 15px; line-height: 1.4;">
+        Aprende el código de colores y viaja por el Perú: LIMA → CUSCO → TARAPOTO
+      </p>
+
+      <div class="tutorial-guide">
+        <h2 style="font-size: 8px; color: #ff00ff; text-align: center; margin-bottom: 10px;">GUÍA INTERACTIVA</h2>
+
+        <!-- Resistor Calculator Preview -->
+        <div class="resistor-container">
+          <div class="lead-left"></div>
+          <div class="resistor-body" id="tut-resistor">
+            <div class="band" id="tut-band1" style="background-color: #8B4513;"></div>
+            <div class="band" id="tut-band2" style="background-color: #000000;"></div>
+            <div class="band" id="tut-band3" style="background-color: #FF0000;"></div>
+            <div class="band" id="tut-band4" style="background-color: #DAA520; margin-left: 20px;"></div>
+          </div>
+          <div class="lead-right"></div>
+        </div>
+
+        <!-- Calculated Value Text -->
+        <div id="tut-calc-display"
+          style="font-size: 7px; text-align: center; color: #fff; margin-bottom: 12px; line-height: 1.5;">
+          Valor: <span style="color:#00e5ff; font-weight:bold;">1.0 kΩ</span><br>
+          (1ª: Marrón (1) | 2ª: Negro (0) | Mult: Rojo (x100))
+        </div>
+
+        <!-- Selectors -->
+        <div class="band-selectors">
+          <button class="band-sel-btn active" id="btn-sel-b1" onclick="selectTutBand(1)">Banda 1</button>
+          <button class="band-sel-btn" id="btn-sel-b2" onclick="selectTutBand(2)">Banda 2</button>
+          <button class="band-sel-btn" id="btn-sel-b3" onclick="selectTutBand(3)">Multiplicador</button>
+        </div>
+
+        <!-- Grid of 10 Colors -->
+        <div class="color-grid" id="tut-color-grid"></div>
+      </div>
+
+      <!-- Test Question to Start -->
+      <div style="border: 2px dashed #ff00ff; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.5);">
+        <h3 style="font-size: 8px; color: #ff00ff; margin-top: 0; margin-bottom: 10px;">PRUEBA TÉCNICA (1 PREGUNTA)</h3>
+        <div class="resistor-container">
+          <div class="lead-left"></div>
+          <div class="resistor-body" id="test-resistor">
+            <div class="band" id="test-band1"></div>
+            <div class="band" id="test-band2"></div>
+            <div class="band" id="test-band3"></div>
+            <div class="band" id="test-band4" style="background-color: #DAA520; margin-left: 20px;"></div>
+          </div>
+          <div class="lead-right"></div>
+        </div>
+        <div style="font-size: 7px; text-align: center; margin-bottom: 8px; color: #aaa;">Indica el valor correcto:
+        </div>
+        <div id="test-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+        <!-- Area visible post-answer success -->
+        <div id="tutorial-completed-area" class="hidden" style="text-align: center; margin-top: 12px;">
+          <p style="font-size: 7px; color: #00ffaa; margin-bottom: 8px;">¡Correcto! Tutorial superado con éxito.</p>
+          <div style="display: flex; gap: 8px;">
+            <button class="share-btn" onclick="shareProgress('tutorial')" style="flex: 1; margin: 0;">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"
+                style="vertical-align: middle; margin-right: 4px;">
+                <path
+                  d="M2,2 L14,2 L14,12 L10,12 L6,15 L6,12 L2,12 Z M5,4 L5,8 L7,10 L9,10 L9,9 L8,8 L7,8 L6,7 L6,6 L7,5 L7,4 Z" />
+              </svg> Compartir
+            </button>
+            <button onclick="enterLevel1()" style="flex: 2; border-color: #ff00ff; color: #ff00ff; margin: 0;">Comenzar
+              LIMA →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pantalla de Juego Activo -->
+    <div id="game-screen" class="hidden">
+      <div id="city-banner"
+        style="color: #ff00ff; font-size: 14px; margin-bottom: 8px; text-shadow: 2px 2px 0px #000; text-align: center;">
+        LIMA</div>
+
+      <div
+        style="display: flex; justify-content: space-between; font-size: 7px; color: #00e5ff; margin-bottom: 8px; border-bottom: 2px solid #33ff33; padding-bottom: 6px;">
+        <div>PTS: <span id="score-val">0</span></div>
+        <div style="display: flex; align-items: center;">VIDAS: <span id="lives-val"
+            style="display: flex; align-items: center; margin-left: 4px;"></span></div>
+      </div>
+
+      <div class="progress-container">
+        <div id="progress-bar" class="progress-bar"></div>
+        <div id="progress-text" class="progress-text">0/10 ACERTADOS</div>
+      </div>
+
+      <div class="resistor-container">
+        <div class="lead-left"></div>
+        <div class="resistor-body" id="game-resistor">
+          <div class="band" id="game-band1"></div>
+          <div class="band" id="game-band2"></div>
+          <div class="band" id="game-band3"></div>
+          <div class="band" id="game-band4" style="background-color: #DAA520; margin-left: 20px;"></div>
+        </div>
+        <div class="lead-right"></div>
+      </div>
+
+      <p id="question-text"
+        style="font-size: 8px; text-align: center; margin-bottom: 12px; line-height: 1.4; color: #fff;">¿Cuál es el
+        valor de esta resistencia?</p>
+      <div id="game-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+
+    <!-- Pantalla de Game Over -->
+    <div id="game-over-screen" class="hidden" style="text-align: center;">
+      <h2 style="font-size: 16px; color: #ff0000; text-shadow: 0 0 6px #ff0000; margin-bottom: 15px;">FIN DEL JUEGO</h2>
+      <p id="game-over-msg" style="font-size: 7px; line-height: 1.5; color: #fff; margin-bottom: 20px;"></p>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="share-btn" onclick="shareProgress('gameover')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"
+            style="vertical-align: middle; margin-right: 4px;">
+            <path
+              d="M2,2 L14,2 L14,12 L10,12 L6,15 L6,12 L2,12 Z M5,4 L5,8 L7,10 L9,10 L9,9 L8,8 L7,8 L6,7 L6,6 L7,5 L7,4 Z" />
+          </svg> Compartir en WhatsApp
+        </button>
+        <button onclick="restartLevel()" style="border-color: #33ff33; color: #33ff33;">Reintentar Nivel</button>
+      </div>
+    </div>
+
+    <!-- Pantalla Final de Créditos -->
+    <div id="credits-screen" class="hidden"
+      style="text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <h2 class="neon-title" style="font-size: 13px;">RETO RESISTENCIA PERÚ</h2>
+        <div style="font-size: 7px; color: #00e5ff; margin-bottom: 5px;">VICTORIA ABSOLUTA DEL JUEGO</div>
+      </div>
+
+      <div class="credits-viewport">
+        <div id="credits-scroller">
+          <div style="color: #ff00ff; font-weight: bold; margin-bottom: 12px; font-size: 9px;">CRÉDITOS</div>
+
+          <div style="color: #00e5ff; margin-top: 10px;">GUIONISTA</div>
+          <div style="color: #fff; margin-bottom: 10px;">IntegraVision Studio</div>
+
+          <div style="color: #00e5ff; margin-top: 10px;">SITIO WEB</div>
+          <div style="color: #fff; margin-bottom: 10px;">www.integravisionstudyo.dedyn.io</div>
+
+          <div style="color: #00e5ff; margin-top: 10px;">PROGRAMADOR DEL SISTEMA</div>
+          <div style="color: #fff; margin-bottom: 10px;">Gemini</div>
+
+          <div style="color: #ff00ff; margin-top: 15px; font-size: 8px;">¡GRACIAS POR JUGAR!</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="share-btn" onclick="shareProgress('victory')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"
+            style="vertical-align: middle; margin-right: 4px;">
+            <path
+              d="M2,2 L14,2 L14,12 L10,12 L6,15 L6,12 L2,12 Z M5,4 L5,8 L7,10 L9,10 L9,9 L8,8 L7,8 L6,7 L6,6 L7,5 L7,4 Z" />
+          </svg> Compartir Victoria
+        </button>
+        <button onclick="resetWholeGame()" style="border-color: #33ff33; color: #33ff33;">Jugar de Nuevo</button>
+      </div>
+    </div>
+
+    <!-- Modal para transiciones y quotes -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h2 id="modal-title"
+          style="font-size: 11px; color: #ff00ff; text-align: center; margin-top: 0; margin-bottom: 12px;">¡NIVEL
+          COMPLETADO!</h2>
+        <div id="modal-quotes-container"
+          style="margin: 12px 0; border: 2px dashed #00e5ff; padding: 10px; border-radius: 6px; background-color: rgba(0, 0, 0, 0.7);">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="share-btn" onclick="shareProgress('level-win')" style="flex: 1; margin: 0;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"
+              style="vertical-align: middle; margin-right: 4px;">
+              <path
+                d="M2,2 L14,2 L14,12 L10,12 L6,15 L6,12 L2,12 Z M5,4 L5,8 L7,10 L9,10 L9,9 L8,8 L7,8 L6,7 L6,6 L7,5 L7,4 Z" />
+            </svg> Compartir
+          </button>
+          <button id="modal-action-btn" onclick="closeModalAndProceed()"
+            style="flex: 1.5; margin: 0; border-color: #ff00ff; color: #ff00ff;">Continuar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuración de Estados del Juego
+    const gameState = {
+      level: 0, // 0: Tutorial, 1: Lima, 2: Cusco, 3: Tarapoto, 4: Credits
+      score: 0,
+      lives: 3,
+      streak: 0,
+      levelStartScore: 0,
+      level2LastRecoveryScore: 0,
+    };
+
+    const colors = [
+      { name: 'Negro', val: 0, hex: '#000000', mult: 1, textMult: 'x1 Ω' },
+      { name: 'Marrón', val: 1, hex: '#8B4513', mult: 10, textMult: 'x10 Ω' },
+      { name: 'Rojo', val: 2, hex: '#FF0000', mult: 100, textMult: 'x100 Ω' },
+      { name: 'Naranja', val: 3, hex: '#FF8500', mult: 1000, textMult: 'x1 kΩ' },
+      { name: 'Amarillo', val: 4, hex: '#FFFF00', mult: 10000, textMult: 'x10 kΩ' },
+      { name: 'Verde', val: 5, hex: '#008000', mult: 100000, textMult: 'x100 kΩ' },
+      { name: 'Azul', val: 6, hex: '#0000FF', mult: 1000000, textMult: 'x1 MΩ' },
+      { name: 'Violeta', val: 7, hex: '#800080', mult: 10000000, textMult: 'x10 MΩ' },
+      { name: 'Gris', val: 8, hex: '#808080', mult: 1, textMult: 'N/A' },
+      { name: 'Blanco', val: 9, hex: '#FFFFFF', mult: 1, textMult: 'N/A' }
+    ];
+
+    const aiQuotes = [
+      "La Inteligencia Artificial es el pincel; tu mente es el lienzo.",
+      "El futuro pertenece a quienes entienden la sinergia entre humanos e IA.",
+      "La IA no te reemplazará, pero alguien que use la IA sí lo hará.",
+      "Automatizar la rutina libera la mente para la verdadera creatividad humana.",
+      "En la era del silicio, dominar los algoritmos es hablar el idioma del futuro.",
+      "La IA analiza el pasado, pero el ser humano decide el mañana.",
+      "Un código bien optimizado es arte; una IA bien guiada es magia.",
+      "Aprender a programar es aprender a pensar con precisión quirúrgica.",
+      "La tecnología es solo una herramienta. La motivación humana es el motor del cambio.",
+      "La IA simplifica lo complejo para que tú puedas crear lo imposible."
+    ];
+
+    // ==========================================
+    // AUDIO SYNTHESIZER ENGINE (Web Audio API)
+    // ==========================================
+    const AudioManager = {
+      ctx: null,
+      isMuted: true,
+      waveNodes: [],
+      sequencerInterval: null,
+      seqStep: 0,
+      seqBpm: 120,
+
+      init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      },
+
+      toggleMute() {
+        this.init();
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+        this.isMuted = !this.isMuted;
+
+        if (this.isMuted) {
+          this.stopAll();
+        } else {
+          this.playBGMForLevel(gameState.level);
+        }
+        this.updateMuteButtonUI();
+      },
+
+      updateMuteButtonUI() {
+        const svg = document.getElementById('audio-icon');
+        if (this.isMuted) {
+          svg.innerHTML = `
+            <path d="M11 5 L6 9 H2 V15 H6 L11 19 V5 Z" fill="#111" />
+            <line x1="22" y1="9" x2="16" y2="15" />
+            <line x1="16" y1="9" x2="22" y2="15" />
+          `;
+        } else {
+          svg.innerHTML = `
+            <path d="M11 5 L6 9 H2 V15 H6 L11 19 V5 Z" fill="#33ff33" />
+            <path d="M15 9 A5 5 0 0 1 15 15" stroke="#33ff33" />
+            <path d="M18 6 A9 9 0 0 1 18 18" stroke="#33ff33" />
+          `;
+        }
+      },
+
+      stopAll() {
+        this.stopSequencer();
+        this.stopWaves();
+      },
+
+      stopWaves() {
+        this.waveNodes.forEach(node => {
+          try { node.stop(); } catch (e) { }
+        });
+        this.waveNodes = [];
+      },
+
+      stopSequencer() {
+        if (this.sequencerInterval) {
+          clearInterval(this.sequencerInterval);
+          this.sequencerInterval = null;
+        }
+      },
+
+      playBGMForLevel(level) {
+        this.stopAll();
+        if (this.isMuted) return;
+        this.init();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        if (level === 0) {
+          this.playOceanWaves();
+        } else if (level === 1) {
+          this.playLimaBGM();
+        } else if (level === 2) {
+          this.playCuscoBGM();
+        } else if (level === 3) {
+          this.playTarapotoBGM();
+        } else if (level === 4) {
+          this.playCreditsBGM();
+        }
+      },
+
+      // LFO modulated White Noise waves
+      playOceanWaves() {
+        const bufferSize = 2 * this.ctx.sampleRate;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        const noiseNode = this.ctx.createBufferSource();
+        noiseNode.buffer = noiseBuffer;
+        noiseNode.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.Q.value = 1.5;
+        filter.frequency.value = 450;
+
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.value = 0.05;
+
+        // LFO for filter frequency sweeping
+        const lfo = this.ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.15; // 6.6s oscillation loop
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 250;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+
+        // LFO for volume pulsing
+        const ampLfo = this.ctx.createOscillator();
+        ampLfo.type = 'sine';
+        ampLfo.frequency.value = 0.15;
+        const ampLfoGain = this.ctx.createGain();
+        ampLfoGain.gain.value = 0.03;
+
+        // Base amplitude offset
+        const baseGain = this.ctx.createGain();
+        baseGain.gain.value = 0.04;
+
+        ampLfo.connect(ampLfoGain);
+        ampLfoGain.connect(gainNode.gain);
+
+        noiseNode.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+
+        noiseNode.start(0);
+        lfo.start(0);
+        ampLfo.start(0);
+
+        this.waveNodes = [noiseNode, lfo, ampLfo];
+      },
+
+      // Sequencer Scheduler
+      startSequencer(bpm, tickCallback) {
+        this.stopSequencer();
+        this.seqStep = 0;
+        const stepTime = 60 / bpm / 4; // 16th notes
+        let nextStepTime = this.ctx.currentTime;
+
+        const scheduler = () => {
+          while (nextStepTime < this.ctx.currentTime + 0.1) {
+            tickCallback(this.seqStep, nextStepTime);
+            nextStepTime += stepTime;
+            this.seqStep = (this.seqStep + 1) % 16;
+          }
+        };
+
+        this.sequencerInterval = setInterval(scheduler, 25);
+      },
+
+      // Level 1: Catchy square urban loop
+      playLimaBGM() {
+        const bass = [110.00, 110.00, 130.81, 130.81, 146.83, 146.83, 164.81, 164.81, 196.00, 196.00, 164.81, 164.81, 146.83, 146.83, 130.81, 110.00];
+        const melody = [440.00, 0, 523.25, 0, 587.33, 0, 659.25, 659.25, 587.33, 0, 523.25, 0, 440.00, 440.00, 392.00, 0];
+
+        this.startSequencer(130, (step, time) => {
+          // Bass line (Square)
+          const bFreq = bass[step];
+          if (bFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(bFreq, time);
+            gain.gain.setValueAtTime(0.015, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.15);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.18);
+          }
+
+          // Melody line (Square)
+          const mFreq = melody[step];
+          if (mFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(mFreq, time);
+            gain.gain.setValueAtTime(0.012, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.2);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.22);
+          }
+        });
+      },
+
+      // Level 2: Andean chiptune using triangle wave flute with continuous vibrato
+      playCuscoBGM() {
+        const bass = [110.00, 110.00, 130.81, 130.81, 98.00, 98.00, 110.00, 110.00, 110.00, 110.00, 130.81, 130.81, 98.00, 98.00, 110.00, 110.00];
+        const melody = [659.25, 0, 783.99, 0, 659.25, 0, 587.33, 587.33, 523.25, 0, 587.33, 0, 440.00, 0, 440.00, 0];
+
+        this.startSequencer(95, (step, time) => {
+          // Bass line (Triangle)
+          const bFreq = bass[step];
+          if (bFreq > 0 && step % 2 === 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(bFreq, time);
+            gain.gain.setValueAtTime(0.03, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.28);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.3);
+          }
+
+          // Flute Melody (Triangle with LFO vibrato)
+          const mFreq = melody[step];
+          if (mFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(mFreq, time);
+
+            // Vibrato LFO
+            const vibrato = this.ctx.createOscillator();
+            vibrato.frequency.setValueAtTime(6.2, time);
+            const vibGain = this.ctx.createGain();
+            vibGain.gain.setValueAtTime(14, time); // Pitch shift offset +/- 14Hz
+
+            vibrato.connect(vibGain);
+            vibGain.connect(osc.frequency);
+
+            gain.gain.setValueAtTime(0.025, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.35);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            vibrato.start(time);
+            osc.start(time);
+
+            vibrato.stop(time + 0.38);
+            osc.stop(time + 0.38);
+          }
+        });
+      },
+
+      // Level 3: Fast tropical rhythm, noise drums, insect/bird sweeps
+      playTarapotoBGM() {
+        const bass = [110.00, 0, 110.00, 130.81, 0, 146.83, 146.83, 0, 164.81, 0, 164.81, 196.00, 0, 164.81, 146.83, 0];
+
+        // Static noise buffer for drum generation
+        const snareBuffer = this.ctx.createBuffer(1, 0.15 * this.ctx.sampleRate, this.ctx.sampleRate);
+        const data = snareBuffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+        this.startSequencer(138, (step, time) => {
+          // Syncopated Bass (Triangle, low octave)
+          const bFreq = bass[step];
+          if (bFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(bFreq / 2, time); // Low sub bass
+            gain.gain.setValueAtTime(0.05, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.14);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.16);
+          }
+
+          // Noise Drums
+          // Hihat on odd steps
+          if (step % 4 === 2) {
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = snareBuffer;
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 8000;
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.008, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.04);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            noise.start(time);
+            noise.stop(time + 0.05);
+          }
+
+          // Snare on steps 4 and 12
+          if (step === 4 || step === 12) {
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = snareBuffer;
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1100;
+            filter.Q.value = 3;
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.015, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.08);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            noise.start(time);
+            noise.stop(time + 0.1);
+          }
+
+          // Procedural Bird/Fauna chirps
+          if (Math.random() < 0.14) {
+            const chirp = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            chirp.type = Math.random() > 0.5 ? 'triangle' : 'square';
+            const fStart = 1800 + Math.random() * 1500;
+            const fEnd = fStart + (Math.random() > 0.5 ? 900 : -900);
+
+            chirp.frequency.setValueAtTime(fStart, time);
+            chirp.frequency.linearRampToValueAtTime(fEnd, time + 0.08);
+
+            gain.gain.setValueAtTime(0.005, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.08);
+
+            chirp.connect(gain);
+            gain.connect(this.ctx.destination);
+            chirp.start(time);
+            chirp.stop(time + 0.09);
+          }
+        });
+      },
+
+      // Credits Screen: Gentle ambient arpeggio
+      playCreditsBGM() {
+        const bass = [130.81, 0, 164.81, 0, 174.61, 0, 220.00, 0, 196.00, 0, 246.94, 0, 261.63, 0, 329.63, 0];
+        const melody = [261.63, 329.63, 392.00, 523.25, 349.23, 440.00, 523.25, 659.25, 392.00, 493.88, 587.33, 783.99, 523.25, 0, 0, 0];
+
+        this.startSequencer(100, (step, time) => {
+          const bFreq = bass[step];
+          if (bFreq > 0 && step % 2 === 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(bFreq, time);
+            gain.gain.setValueAtTime(0.025, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.4);
+          }
+
+          const mFreq = melody[step];
+          if (mFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(mFreq, time);
+            gain.gain.setValueAtTime(0.015, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.45);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.5);
+          }
+        });
+      },
+
+      // Sound FX
+      playSFX(type) {
+        if (this.isMuted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+
+        if (type === 'success') {
+          // High speed arpeggio
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(f, now + idx * 0.05);
+            gain.gain.setValueAtTime(0.035, now + idx * 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.05 + 0.08);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.05);
+            osc.stop(now + idx * 0.05 + 0.1);
+          });
+        } else if (type === 'error') {
+          // Low frequency sliding pulse + noise splash
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc2.type = 'square';
+
+          osc1.frequency.setValueAtTime(140, now);
+          osc1.frequency.linearRampToValueAtTime(45, now + 0.3);
+
+          osc2.frequency.setValueAtTime(143, now);
+          osc2.frequency.linearRampToValueAtTime(47, now + 0.3);
+
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 0.32);
+          osc2.stop(now + 0.32);
+        }
+      },
+
+      // IA Life recovery coin chime
+      playChimeSFX() {
+        if (this.isMuted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(987.77, now);      // B5
+        osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.3);
+      },
+
+      // Level completion triumphant fanfare
+      playTriumphSFX() {
+        if (this.isMuted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(f, now + idx * 0.07);
+          gain.gain.setValueAtTime(0.035, now + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.07 + 0.28);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.07);
+          osc.stop(now + idx * 0.07 + 0.32);
+        });
+      }
+    };
+
+    // ==========================================
+    // PROCEDURAL GRAPHICS ENGINE (HTML5 Canvas)
+    // ==========================================
+    const CanvasEngine = {
+      canvas: null,
+      ctx: null,
+      V_WIDTH: 256,
+      V_HEIGHT: 240,
+      animFrame: 0,
+      stars: [],
+      clouds: [],
+      llama: {
+        x: 15,
+        y: 162,
+        dir: 1,
+        isEating: false,
+        eatTimer: 0,
+        tailWag: 0,
+        update() {
+          if (this.isEating) {
+            this.eatTimer--;
+            if (this.eatTimer <= 0) {
+              this.isEating = false;
+            }
+          } else {
+            this.x += 0.25 * this.dir;
+            if (this.x > 115) {
+              this.dir = -1;
+              this.isEating = true;
+              this.eatTimer = 110;
+            } else if (this.x < 10) {
+              this.dir = 1;
+              this.isEating = true;
+              this.eatTimer = 110;
+            }
+          }
+          this.tailWag = Math.sin(CanvasEngine.animFrame * 0.4) > 0 ? 1 : 0;
+        },
+        draw() {
+          this.update();
+          const c = CanvasEngine.ctx;
+          c.save();
+          c.translate(this.x, this.y);
+          if (this.dir === -1) {
+            c.scale(-1, 1);
+            c.translate(-16, 0);
+          }
+
+          // Llama silhouette (Cream/White)
+          c.fillStyle = '#f0f3f4';
+          c.fillRect(4, 8, 12, 6); // body
+
+          let neckY = this.isEating ? 5 : 2;
+          c.fillRect(12, neckY, 3, 7); // neck
+          c.fillRect(12, neckY - 2, 6, 3); // head
+
+          // Ears
+          c.fillRect(12, neckY - 4, 1, 2);
+          c.fillRect(14, neckY - 3, 1, 2);
+
+          // Tail
+          c.fillStyle = '#bdc3c7';
+          c.fillRect(2, 8 + this.tailWag, 2, 2);
+
+          // Animated Legs
+          c.strokeStyle = '#bdc3c7';
+          c.lineWidth = 1;
+          const cycle = this.isEating ? 0 : Math.sin(CanvasEngine.animFrame * 0.25);
+
+          // Legs
+          c.beginPath(); c.moveTo(6, 14); c.lineTo(6 + cycle * 2, 18); c.stroke();
+          c.beginPath(); c.moveTo(8, 14); c.lineTo(8 - cycle * 2, 18); c.stroke();
+          c.beginPath(); c.moveTo(12, 14); c.lineTo(12 + cycle * 2, 18); c.stroke();
+          c.beginPath(); c.moveTo(14, 14); c.lineTo(14 - cycle * 2, 18); c.stroke();
+
+          c.restore();
+        }
+      },
+      creditsScrollX: 0,
+
+      init() {
+        this.canvas = document.getElementById('bg-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        // Setup stars
+        for (let i = 0; i < 24; i++) {
+          this.stars.push({
+            x: Math.random() * this.V_WIDTH,
+            y: Math.random() * 110,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+
+        // Setup clouds
+        for (let i = 0; i < 3; i++) {
+          this.clouds.push({
+            x: Math.random() * this.V_WIDTH,
+            y: 20 + i * 25,
+            speed: 0.08 + Math.random() * 0.07,
+            size: 15 + Math.random() * 12
+          });
+        }
+
+        this.loop();
+      },
+
+      resize() {
+        this.canvas.width = this.V_WIDTH;
+        this.canvas.height = this.V_HEIGHT;
+      },
+
+      loop() {
+        this.animFrame++;
+        this.draw();
+        requestAnimationFrame(() => this.loop());
+      },
+
+      draw() {
+        this.ctx.clearRect(0, 0, this.V_WIDTH, this.V_HEIGHT);
+
+        if (gameState.level === 0) {
+          this.drawPane(0, 0);
+        } else if (gameState.level === 1) {
+          this.drawPane(1, 0);
+        } else if (gameState.level === 2) {
+          this.drawPane(2, 0);
+        } else if (gameState.level === 3) {
+          this.drawPane(3, 0);
+        } else if (gameState.level === 4) {
+          // Credits Screen: parallax scrolling loop stitching all 4 panes
+          this.creditsScrollX += 0.45;
+          const totalPanes = 4;
+          const totalWidth = totalPanes * this.V_WIDTH;
+          const curScroll = this.creditsScrollX % totalWidth;
+
+          for (let i = 0; i < totalPanes; i++) {
+            let xPos = i * this.V_WIDTH - curScroll;
+            if (xPos < -this.V_WIDTH) xPos += totalWidth;
+            if (xPos < this.V_WIDTH && xPos > -this.V_WIDTH) {
+              this.drawPane(i, xPos);
+            }
+            // Double drawing logic around loop boundaries
+            let xPosAlt = xPos - totalWidth;
+            if (xPosAlt < this.V_WIDTH && xPosAlt > -this.V_WIDTH) {
+              this.drawPane(i, xPosAlt);
+            }
+          }
+        }
+      },
+
+      drawPane(index, xOffset) {
+        const c = this.ctx;
+        c.save();
+        c.translate(xOffset, 0);
+
+        if (index === 0) {
+          // TUTORIAL: Isla San Lorenzo
+          // Sky
+          const skyGrad = c.createLinearGradient(0, 0, 0, this.V_HEIGHT);
+          skyGrad.addColorStop(0, '#040412');
+          skyGrad.addColorStop(1, '#0e1136');
+          c.fillStyle = skyGrad;
+          c.fillRect(0, 0, this.V_WIDTH, this.V_HEIGHT);
+
+          // Stars
+          c.fillStyle = '#ffffff';
+          this.stars.forEach(s => {
+            const opacity = 0.25 + 0.75 * Math.sin(this.animFrame * 0.04 + s.phase);
+            c.globalAlpha = opacity;
+            c.fillRect(s.x, s.y, 1, 1);
+          });
+          c.globalAlpha = 1.0;
+
+          // Crescent Moon
+          c.fillStyle = '#fffecd';
+          c.beginPath();
+          c.arc(200, 32, 7, 0, Math.PI * 2);
+          c.fill();
+          c.fillStyle = '#040412';
+          c.beginPath();
+          c.arc(196, 32, 7, 0, Math.PI * 2);
+          c.fill();
+
+          // Island Silhouette
+          c.beginPath();
+          c.moveTo(25, 160);
+          c.quadraticCurveTo(80, 115, 135, 150);
+          c.quadraticCurveTo(185, 110, 235, 160);
+          c.lineTo(this.V_WIDTH, 160);
+          c.lineTo(this.V_WIDTH, this.V_HEIGHT);
+          c.lineTo(0, this.V_HEIGHT);
+          c.closePath();
+          c.fillStyle = '#060818';
+          c.fill();
+
+          // Wave layers
+          this.drawWaves(164, '#0c1a40', 0.16, 2.5, 16);
+          this.drawWaves(176, '#11265c', -0.22, 3.5, 12);
+          this.drawWaves(192, '#183c8c', 0.32, 4.5, 10);
+
+        } else if (index === 1) {
+          // NIVEL 1: Palacio de Gobierno (Lima)
+          // Sky (Daytime)
+          const skyGrad = c.createLinearGradient(0, 0, 0, this.V_HEIGHT);
+          skyGrad.addColorStop(0, '#5cb5ff');
+          skyGrad.addColorStop(1, '#c5e6ff');
+          c.fillStyle = skyGrad;
+          c.fillRect(0, 0, this.V_WIDTH, this.V_HEIGHT);
+
+          // Moving Clouds
+          c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          this.clouds.forEach(cl => {
+            cl.x = (cl.x + cl.speed) % (this.V_WIDTH + 40);
+            const cx = cl.x - 20;
+            // Draw pixel block cloud
+            c.fillRect(cx, cl.y, cl.size, 6);
+            c.fillRect(cx + 4, cl.y - 4, cl.size - 8, 14);
+            c.fillRect(cx + 8, cl.y - 8, cl.size - 16, 4);
+          });
+
+          // Government Palace structure
+          c.fillStyle = '#cca40d'; // Palace Yellow
+          c.fillRect(0, 135, this.V_WIDTH, 105);
+
+          // Central Portal
+          c.fillStyle = '#8f7206';
+          c.fillRect(108, 115, 40, 20);
+          // Central Dome
+          c.fillStyle = '#34495e';
+          c.beginPath();
+          c.arc(128, 115, 14, Math.PI, 2 * Math.PI);
+          c.fill();
+
+          // Left/Right Roof Towers
+          c.fillStyle = '#ad8b0a';
+          c.fillRect(35, 120, 25, 15);
+          c.fillRect(196, 120, 25, 15);
+
+          // Flags
+          this.drawFlag(128, 101);
+          this.drawFlag(47, 120);
+          this.drawFlag(208, 120);
+
+          // Columns
+          c.fillStyle = '#eaecee';
+          for (let colX = 10; colX < 250; colX += 20) {
+            if (colX < 100 || colX > 150) {
+              c.fillRect(colX, 135, 3, 105);
+            }
+          }
+
+          // Dark windows
+          c.fillStyle = '#1c2833';
+          for (let winX = 15; winX < 240; winX += 20) {
+            if (winX < 100 || winX > 150) {
+              c.fillRect(winX, 145, 5, 8);
+              c.fillRect(winX, 165, 5, 8);
+              c.fillRect(winX, 185, 5, 8);
+            }
+          }
+
+        } else if (index === 2) {
+          // NIVEL 2: Machu Picchu (Cusco)
+          // Sky (Mountain light)
+          const skyGrad = c.createLinearGradient(0, 0, 0, this.V_HEIGHT);
+          skyGrad.addColorStop(0, '#212d3a');
+          skyGrad.addColorStop(1, '#4c9ee0');
+          c.fillStyle = skyGrad;
+          c.fillRect(0, 0, this.V_WIDTH, this.V_HEIGHT);
+
+          // Huayna Picchu Mountain peak
+          c.fillStyle = '#1b7a43'; // Deep Green
+          c.beginPath();
+          c.moveTo(125, 200);
+          c.lineTo(165, 65);  // Peak
+          c.lineTo(178, 80);
+          c.lineTo(192, 72);  // Side Peak
+          c.lineTo(235, 200);
+          c.closePath();
+          c.fill();
+
+          // Left Mountain Peak
+          c.fillStyle = '#229150';
+          c.beginPath();
+          c.moveTo(15, 200);
+          c.lineTo(70, 105);
+          c.lineTo(135, 200);
+          c.closePath();
+          c.fill();
+
+          // Terraced structures
+          c.fillStyle = '#7f8c8d'; // Stone base
+          c.fillRect(0, 180, this.V_WIDTH, 60);
+          c.fillStyle = '#27ae60'; // Grass top
+          c.fillRect(0, 180, this.V_WIDTH, 5);
+
+          c.fillStyle = '#7f8c8d';
+          c.fillRect(45, 194, 211, 46);
+          c.fillStyle = '#27ae60';
+          c.fillRect(45, 194, 211, 5);
+
+          c.fillStyle = '#7f8c8d';
+          c.fillRect(115, 208, 141, 32);
+          c.fillStyle = '#27ae60';
+          c.fillRect(115, 208, 141, 5);
+
+          // Animated Llama
+          this.llama.draw();
+
+        } else if (index === 3) {
+          // NIVEL 3: Tarapoto (Jungle)
+          // Sunset Sky
+          const skyGrad = c.createLinearGradient(0, 0, 0, this.V_HEIGHT);
+          skyGrad.addColorStop(0, '#cb4335'); // Deep Sunset red
+          skyGrad.addColorStop(0.5, '#e67e22'); // Orange
+          skyGrad.addColorStop(1, '#f1c40f'); // Yellow
+          c.fillStyle = skyGrad;
+          c.fillRect(0, 0, this.V_WIDTH, this.V_HEIGHT);
+
+          // Setting Sun
+          c.fillStyle = '#f39c12';
+          c.beginPath();
+          c.arc(60, 95, 16, 0, Math.PI * 2);
+          c.fill();
+
+          // Mountain Silhouettes
+          c.fillStyle = '#212f3d';
+          c.beginPath();
+          c.moveTo(0, 240);
+          c.quadraticCurveTo(80, 135, 160, 185);
+          c.quadraticCurveTo(210, 165, 256, 215);
+          c.lineTo(256, 240);
+          c.closePath();
+          c.fill();
+
+          c.fillStyle = '#17202a';
+          c.beginPath();
+          c.moveTo(0, 240);
+          c.quadraticCurveTo(55, 175, 110, 205);
+          c.quadraticCurveTo(185, 175, 256, 240);
+          c.closePath();
+          c.fill();
+
+          // 2 Swaying Palm Trees
+          this.drawPalm(35, 235, 76, 1.0, 0);
+          this.drawPalm(215, 240, 62, 0.8, Math.PI * 0.5);
+        }
+
+        c.restore();
+      },
+
+      drawWaves(y, color, speed, height, wavelength) {
+        const c = this.ctx;
+        c.fillStyle = color;
+        c.beginPath();
+        c.moveTo(0, y);
+        for (let x = 0; x <= this.V_WIDTH; x++) {
+          const waveY = y + Math.sin((x + this.animFrame * speed) / wavelength) * height;
+          c.lineTo(x, waveY);
+        }
+        c.lineTo(this.V_WIDTH, this.V_HEIGHT);
+        c.lineTo(0, this.V_HEIGHT);
+        c.closePath();
+        c.fill();
+      },
+
+      drawFlag(poleX, poleY) {
+        const c = this.ctx;
+        // Pole
+        c.strokeStyle = '#7f8c8d';
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(poleX, poleY);
+        c.lineTo(poleX, poleY - 14);
+        c.stroke();
+
+        // Animated red-white-red waving flag banner
+        const topY = poleY - 14;
+        const height = 8;
+        const wave = this.animFrame * 0.16;
+
+        for (let dx = 0; dx < 12; dx++) {
+          const dy = Math.sin(wave + dx * 0.6) * 1.2;
+          const color = (dx < 4 || dx >= 8) ? '#e74c3c' : '#ffffff';
+          c.fillStyle = color;
+          c.fillRect(poleX + dx, topY + dy, 1, height);
+        }
+      },
+
+      drawPalm(x, y, height, scale, phase) {
+        const c = this.ctx;
+        // Swaying Trunk
+        c.strokeStyle = '#5a2d13';
+        c.lineWidth = 3.5 * scale;
+        c.beginPath();
+        c.moveTo(x, y);
+        const topX = x + Math.sin(this.animFrame * 0.02 + phase) * 5;
+        const topY = y - height;
+        c.quadraticCurveTo(x - 6 * scale, y - height / 2, topX, topY);
+        c.stroke();
+
+        // 6 Swaying Palm Leaves
+        const numLeaves = 6;
+        for (let i = 0; i < numLeaves; i++) {
+          const baseAngle = (i / numLeaves) * Math.PI * 2 + Math.sin(this.animFrame * 0.03 + phase) * 0.12;
+          const len = 20 * scale;
+          const midX = topX + Math.cos(baseAngle) * (len * 0.5);
+          const midY = topY + Math.sin(baseAngle) * (len * 0.5) + Math.cos(baseAngle) * 3; // Droop
+          const endX = topX + Math.cos(baseAngle) * len;
+          const endY = topY + Math.sin(baseAngle) * len + 7 * scale;
+
+          c.beginPath();
+          c.moveTo(topX, topY);
+          c.quadraticCurveTo(midX, midY, endX, endY);
+          c.lineWidth = 1.8 * scale;
+          c.strokeStyle = '#1e8449';
+          c.stroke();
+        }
+      }
+    };
+
+    // ==========================================
+    // TUTORIAL SELECTOR & CALCULATOR STATE
+    // ==========================================
+    let tutB1 = 1; // Marrón
+    let tutB2 = 0; // Negro
+    let tutB3 = 2; // Rojo
+    let tutActiveBand = 1;
+
+    function initTutorialCalculator() {
+      const grid = document.getElementById('tut-color-grid');
+      grid.innerHTML = '';
+      colors.forEach(c => {
+        const btn = document.createElement('div');
+        btn.className = 'color-btn';
+        btn.style.backgroundColor = c.hex;
+        // Text readability logic
+        btn.style.color = (c.val === 4 || c.val === 9) ? '#000' : '#fff';
+        btn.style.textShadow = '1px 1px 1px #000';
+        btn.innerText = c.name;
+        btn.onclick = () => selectTutColor(c.val);
+        grid.appendChild(btn);
+      });
+      updateTutPreview();
+    }
+
+    function selectTutBand(bandNum) {
+      tutActiveBand = bandNum;
+      document.getElementById('btn-sel-b1').classList.toggle('active', bandNum === 1);
+      document.getElementById('btn-sel-b2').classList.toggle('active', bandNum === 2);
+      document.getElementById('btn-sel-b3').classList.toggle('active', bandNum === 3);
+    }
+
+    function selectTutColor(colorVal) {
+      if (tutActiveBand === 1) {
+        if (colorVal === 0) return; // Band 1 cannot be Black
+        tutB1 = colorVal;
+      } else if (tutActiveBand === 2) {
+        tutB2 = colorVal;
+      } else if (tutActiveBand === 3) {
+        if (colorVal > 7) return; // Limit multiplier up to Violet
+        tutB3 = colorVal;
+      }
+      updateTutPreview();
+    }
+
+    function updateTutPreview() {
+      document.getElementById('tut-band1').style.backgroundColor = colors[tutB1].hex;
+      document.getElementById('tut-band2').style.backgroundColor = colors[tutB2].hex;
+      document.getElementById('tut-band3').style.backgroundColor = colors[tutB3].hex;
+
+      const val = (tutB1 * 10 + tutB2) * colors[tutB3].mult;
+      const formatted = formatResistorValue(val);
+
+      document.getElementById('tut-calc-display').innerHTML = `
+        Valor: <span style="color:#00e5ff; font-weight:bold;">${formatted}</span><br>
+        (1ª: ${colors[tutB1].name} (${tutB1}) | 2ª: ${colors[tutB2].name} (${tutB2}) | Mult: ${colors[tutB3].name} (${colors[tutB3].textMult}))
+      `;
+    }
+
+    // Helper to format ohms to nice metrics
+    function formatResistorValue(ohms) {
+      if (ohms >= 1000000) {
+        return (ohms / 1000000) + " MΩ";
+      } else if (ohms >= 1000) {
+        return (ohms / 1000) + " kΩ";
+      } else {
+        return ohms + " Ω";
+      }
+    }
+
+    // ==========================================
+    // TUTORIAL TEST QUESTION GENERATOR
+    // ==========================================
+    let testB1, testB2, testB3, testCorrectAnswer;
+
+    function generateTutorialQuestion() {
+      testB1 = Math.floor(Math.random() * 9) + 1; // 1-9
+      testB2 = Math.floor(Math.random() * 10);    // 0-9
+      testB3 = Math.floor(Math.random() * 5);    // 0-4 (Gold-Yellow multipliers)
+
+      document.getElementById('test-band1').style.backgroundColor = colors[testB1].hex;
+      document.getElementById('test-band2').style.backgroundColor = colors[testB2].hex;
+      document.getElementById('test-band3').style.backgroundColor = colors[testB3].hex;
+
+      const val = (testB1 * 10 + testB2) * colors[testB3].mult;
+      testCorrectAnswer = formatResistorValue(val);
+
+      // Create distractors
+      const opts = [
+        testCorrectAnswer,
+        formatResistorValue(val * 10),
+        formatResistorValue(val / 10),
+        formatResistorValue(((testB1 + 2) % 9 + 1) * 10 * colors[testB3].mult)
+      ];
+
+      // Clean duplicates
+      const uniqueOpts = Array.from(new Set(opts)).slice(0, 4);
+      while (uniqueOpts.length < 4) {
+        uniqueOpts.push(formatResistorValue(Math.floor(Math.random() * 50) * 100));
+      }
+
+      uniqueOpts.sort(() => Math.random() - 0.5);
+
+      const container = document.getElementById('test-options');
+      container.innerHTML = '';
+      uniqueOpts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => checkTutorialAnswer(opt, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkTutorialAnswer(selected, buttonEl) {
+      if (selected === testCorrectAnswer) {
+        AudioManager.playSFX('success');
+        document.body.classList.add('flash-success');
+        setTimeout(() => document.body.classList.remove('flash-success'), 150);
+
+        buttonEl.style.backgroundColor = '#005500';
+        buttonEl.style.borderColor = '#00ff00';
+
+        // Lock options
+        const btns = document.getElementById('test-options').getElementsByTagName('button');
+        for (let b of btns) b.disabled = true;
+
+        document.getElementById('tutorial-completed-area').classList.remove('hidden');
+      } else {
+        AudioManager.playSFX('error');
+        document.body.classList.add('flash-error');
+        setTimeout(() => document.body.classList.remove('flash-error'), 150);
+
+        const res = document.getElementById('test-resistor');
+        res.classList.add('shake');
+        setTimeout(() => res.classList.remove('shake'), 400);
+
+        buttonEl.classList.add('wrong-option');
+        buttonEl.disabled = true;
+      }
+    }
+
+    // ==========================================
+    // GAME CORE STATE LOGIC
+    // ==========================================
+    let gameB1, gameB2, gameB3, gameCorrectAnswer;
+
+    function enterLevel1() {
+      gameState.level = 1;
+      gameState.score = 0;
+      gameState.lives = 3;
+      gameState.streak = 0;
+      gameState.levelStartScore = 0;
+
+      AudioManager.playBGMForLevel(1);
+
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+
+      updateGameUI();
+      generateGameQuestion();
+    }
+
+    function generateGameQuestion() {
+      // Small visual feedback animation
+      const res = document.getElementById('game-resistor');
+      res.classList.add('shake');
+      setTimeout(() => res.classList.remove('shake'), 400);
+
+      gameB1 = Math.floor(Math.random() * 9) + 1; // 1-9
+      gameB2 = Math.floor(Math.random() * 10);    // 0-9
+
+      // Limit multipliers depending on level
+      let maxMult = 5; // Level 1: Up to Green
+      if (gameState.level === 2) maxMult = 6; // Level 2: Up to Blue
+      if (gameState.level === 3) maxMult = 7; // Level 3: Up to Violet
+
+      gameB3 = Math.floor(Math.random() * maxMult);
+
+      document.getElementById('game-band1').style.backgroundColor = colors[gameB1].hex;
+      document.getElementById('game-band2').style.backgroundColor = colors[gameB2].hex;
+      document.getElementById('game-band3').style.backgroundColor = colors[gameB3].hex;
+
+      const val = (gameB1 * 10 + gameB2) * colors[gameB3].mult;
+      gameCorrectAnswer = formatResistorValue(val);
+
+      const opts = [
+        gameCorrectAnswer,
+        formatResistorValue(val * 10),
+        formatResistorValue(val / 10),
+        formatResistorValue(((gameB1 + 2) % 9 + 1) * 10 * colors[gameB3].mult)
+      ];
+
+      const uniqueOpts = Array.from(new Set(opts)).slice(0, 4);
+      while (uniqueOpts.length < 4) {
+        uniqueOpts.push(formatResistorValue(Math.floor(Math.random() * 100) * 100));
+      }
+
+      uniqueOpts.sort(() => Math.random() - 0.5);
+
+      const container = document.getElementById('game-options');
+      container.innerHTML = '';
+      uniqueOpts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => checkGameAnswer(opt, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkGameAnswer(selected, buttonEl) {
+      const goal = (gameState.level === 1) ? 10 : (gameState.level === 2 ? 20 : 30);
+
+      if (selected === gameCorrectAnswer) {
+        AudioManager.playSFX('success');
+        document.body.classList.add('flash-success');
+        setTimeout(() => document.body.classList.remove('flash-success'), 150);
+
+        gameState.score += 10;
+        gameState.streak++;
+
+        // Level 2 IA Life recovery check
+        if (gameState.level === 2) {
+          if (gameState.score - gameState.level2LastRecoveryScore >= 100) {
+            gameState.level2LastRecoveryScore += 100;
+            if (gameState.lives < 3) {
+              gameState.lives++;
+              showFloatingFeedback("+1 VIDA (REGALO IA)", "#00e5ff");
+              AudioManager.playChimeSFX();
+            }
+          }
+        }
+
+        if (gameState.streak >= goal) {
+          showLevelCompleteModal();
+          return;
+        }
+
+        updateGameUI();
+        generateGameQuestion();
+      } else {
+        // ERROR
+        AudioManager.playSFX('error');
+        document.body.classList.add('flash-error');
+        setTimeout(() => document.body.classList.remove('flash-error'), 150);
+
+        const res = document.getElementById('game-resistor');
+        res.classList.add('shake');
+        setTimeout(() => res.classList.remove('shake'), 400);
+
+        // Apply rules per level
+        if (gameState.level === 1) {
+          // Level 1: Basic. Lives not lost, streak not reset. 0 pts for error.
+        } else if (gameState.level === 2) {
+          // Level 2: Medium. Consumes 1 life. Streak decreases by 1. Score -10 (min 0).
+          gameState.lives--;
+          gameState.streak = Math.max(0, gameState.streak - 1);
+          gameState.score = Math.max(0, gameState.score - 10);
+
+          if (gameState.lives <= 0) {
+            showGameOver();
+            return;
+          }
+        } else if (gameState.level === 3) {
+          // Level 3: Expert. Consumes 1 life. Streak resets to 0. Score -10 (min 0).
+          gameState.lives--;
+          gameState.streak = 0;
+          gameState.score = Math.max(0, gameState.score - 10);
+
+          if (gameState.lives <= 0) {
+            showGameOver();
+            return;
+          }
+        }
+
+        updateGameUI();
+        generateGameQuestion();
+      }
+    }
+
+    function drawHearts() {
+      let html = '';
+      for (let i = 0; i < 3; i++) {
+        if (i < gameState.lives) {
+          html += `
+            <svg class="heart-icon" width="14" height="14" viewBox="0 0 16 16" fill="#ff0055" style="margin-right: 2px;">
+              <path d="M8,3 C8,3 5.5,0 3,0 C0.5,0 0,2 0,4.5 C0,8 8,15 8,15 C8,15 16,8 16,4.5 C16,2 15.5,0 13,0 C10.5,0 8,3 8,3 Z" />
+            </svg>`;
+        } else {
+          html += `
+            <svg class="heart-icon" width="14" height="14" viewBox="0 0 16 16" fill="#444" style="margin-right: 2px;">
+              <path d="M8,3 C8,3 5.5,0 3,0 C0.5,0 0,2 0,4.5 C0,8 8,15 8,15 C8,15 16,8 16,4.5 C16,2 15.5,0 13,0 C10.5,0 8,3 8,3 Z" />
+            </svg>`;
+        }
+      }
+      return html;
+    }
+
+    function updateGameUI() {
+      let label = 'LIMA';
+      let goal = 10;
+      if (gameState.level === 1) { label = 'LIMA (BÁSICO)'; goal = 10; }
+      else if (gameState.level === 2) { label = 'CUSCO (MEDIO)'; goal = 20; }
+      else if (gameState.level === 3) { label = 'TARAPOTO (EXPERTO)'; goal = 30; }
+
+      document.getElementById('city-banner').innerText = label;
+      document.getElementById('score-val').innerText = gameState.score;
+
+      if (gameState.level === 1) {
+        document.getElementById('lives-val').innerHTML = '❤️ ❤️ ❤️ (SEGURO)';
+      } else {
+        document.getElementById('lives-val').innerHTML = drawHearts();
+      }
+
+      const pct = (gameState.streak / goal) * 100;
+      document.getElementById('progress-bar').style.width = pct + '%';
+      document.getElementById('progress-text').innerText = `STREAK: ${gameState.streak}/${goal}`;
+    }
+
+    // Floating text feedback for recovery chimes
+    function showFloatingFeedback(text, color) {
+      const container = document.getElementById('game-container');
+      const el = document.createElement('div');
+      el.innerText = text;
+      el.style.position = 'absolute';
+      el.style.top = '50%';
+      el.style.left = '50%';
+      el.style.transform = 'translate(-50%, -50%)';
+      el.style.color = color;
+      el.style.fontSize = '10px';
+      el.style.textShadow = '2px 2px 0px #000';
+      el.style.pointerEvents = 'none';
+      el.style.zIndex = '50';
+      el.style.animation = 'floatUpFade 1.2s ease-out forwards';
+
+      // keyframe injection if missing
+      if (!document.getElementById('float-keyframe')) {
+        const style = document.createElement('style');
+        style.id = 'float-keyframe';
+        style.innerHTML = `
+          @keyframes floatUpFade {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+            100% { transform: translate(-50%, -100%) scale(1.1); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1200);
+    }
+
+    // ==========================================
+    // LEVEL COMPLETION / TRANSITIONS
+    // ==========================================
+    function showLevelCompleteModal() {
+      AudioManager.stopSequencer();
+      AudioManager.playTriumphSFX();
+
+      // Soothing wave loops during screens
+      AudioManager.playOceanWaves();
+
+      const title = document.getElementById('modal-title');
+      const box = document.getElementById('modal-quotes-container');
+      const btn = document.getElementById('modal-action-btn');
+
+      box.innerHTML = '';
+
+      if (gameState.level === 1) {
+        title.innerText = '¡LIMA COMPLETADO!';
+        const quotes = getRandomQuotes(1);
+        quotes.forEach(q => box.innerHTML += `<div class="quote-text">"${q}"</div>`);
+        btn.innerText = 'AVANZAR A CUSCO';
+        btn.onclick = () => advanceToLevel(2);
+      } else if (gameState.level === 2) {
+        title.innerText = '¡CUSCO COMPLETADO!';
+        const quotes = getRandomQuotes(2);
+        quotes.forEach(q => box.innerHTML += `<div class="quote-text">"${q}"</div>`);
+        btn.innerText = 'AVANZAR A TARAPOTO';
+        btn.onclick = () => advanceToLevel(3);
+      } else if (gameState.level === 3) {
+        title.innerText = '¡VICTORIA ABSOLUTA!';
+        const quotes = getRandomQuotes(3);
+        quotes.forEach(q => box.innerHTML += `<div class="quote-text">"${q}"</div>`);
+        btn.innerText = 'VER CRÉDITOS';
+        btn.onclick = () => showCredits();
+      }
+
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+
+    function getRandomQuotes(count) {
+      const shuffled = [...aiQuotes].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+
+    function advanceToLevel(lvl) {
+      gameState.level = lvl;
+      gameState.streak = 0;
+      gameState.lives = 3;
+      gameState.levelStartScore = gameState.score;
+      if (lvl === 2) {
+        gameState.level2LastRecoveryScore = gameState.score;
+      }
+
+      AudioManager.playBGMForLevel(lvl);
+
+      document.getElementById('modal-overlay').classList.add('hidden');
+      updateGameUI();
+      generateGameQuestion();
+    }
+
+    function closeModalAndProceed() {
+      // Fallback click action
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    // ==========================================
+    // GAME OVER & RESTARTS
+    // ==========================================
+    function showGameOver() {
+      AudioManager.stopAll();
+      AudioManager.playSFX('error');
+      AudioManager.playOceanWaves();
+
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('game-over-screen').classList.remove('hidden');
+
+      let cityStr = 'LIMA';
+      if (gameState.level === 2) cityStr = 'CUSCO';
+      if (gameState.level === 3) cityStr = 'TARAPOTO';
+
+      document.getElementById('game-over-msg').innerHTML = `
+        TE HAS QUEDADO SIN VIDAS EN <strong>${cityStr}</strong>.<br><br>
+        PUNTAJE LOGRADO: <span style="color:#00e5ff; font-weight:bold;">${gameState.score} PTS</span>.<br><br>
+        ¡LA INTELIGENCIA ARTIFICIAL CONFÍA EN TU RETORNO!
+      `;
+    }
+
+    function restartLevel() {
+      gameState.lives = 3;
+      gameState.streak = 0;
+      gameState.score = gameState.levelStartScore;
+      if (gameState.level === 2) {
+        gameState.level2LastRecoveryScore = gameState.levelStartScore;
+      }
+
+      AudioManager.playBGMForLevel(gameState.level);
+
+      document.getElementById('game-over-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+
+      updateGameUI();
+      generateGameQuestion();
+    }
+
+    // ==========================================
+    // CREDITS VIEW SCROLLER
+    // ==========================================
+    let creditsTop = 180;
+    let creditsInterval = null;
+
+    function showCredits() {
+      gameState.level = 4;
+      AudioManager.playBGMForLevel(4);
+
+      document.getElementById('modal-overlay').classList.add('hidden');
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('credits-screen').classList.remove('hidden');
+
+      // Start vertical movie scroll
+      const scroller = document.getElementById('credits-scroller');
+      creditsTop = 180;
+      scroller.style.top = creditsTop + 'px';
+
+      if (creditsInterval) clearInterval(creditsInterval);
+      creditsInterval = setInterval(() => {
+        creditsTop -= 0.5;
+        if (creditsTop < -220) {
+          creditsTop = 180;
+        }
+        scroller.style.top = creditsTop + 'px';
+      }, 30);
+    }
+
+    function stopCreditsScroller() {
+      if (creditsInterval) {
+        clearInterval(creditsInterval);
+        creditsInterval = null;
+      }
+    }
+
+    function resetWholeGame() {
+      stopCreditsScroller();
+      gameState.level = 0;
+      gameState.score = 0;
+      gameState.lives = 3;
+      gameState.streak = 0;
+
+      AudioManager.playBGMForLevel(0);
+
+      document.getElementById('credits-screen').classList.add('hidden');
+      document.getElementById('start-screen').classList.remove('hidden');
+      document.getElementById('tutorial-completed-area').classList.add('hidden');
+
+      updateTutPreview();
+      generateTutorialQuestion();
+    }
+
+    // ==========================================
+    // SOCIAL INTEGRATION MODULE (WhatsApp Sharing)
+    // ==========================================
+    function shareProgress(type) {
+      let text = '';
+      let lvlName = 'TUTORIAL';
+      if (gameState.level === 1) lvlName = 'LIMA';
+      if (gameState.level === 2) lvlName = 'CUSCO';
+      if (gameState.level === 3) lvlName = 'TARAPOTO';
+
+      if (type === 'tutorial') {
+        text = "¡He completado el tutorial de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru";
+      } else if (type === 'level-win') {
+        text = `¡He logrado ${gameState.score} puntos y completado el reto en el nivel ${lvlName} de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru`;
+      } else if (type === 'gameover') {
+        text = `¡He logrado ${gameState.score} puntos en el nivel ${lvlName} de Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru`;
+      } else if (type === 'victory') {
+        text = `¡He logrado la VICTORIA ABSOLUTA con ${gameState.score} puntos en Reto Resistencia Perú! ¿Te atreves a superar mi récord? Pon a prueba tu mente aquí: https://github.com/tomcorc64/juego-resistencia-peru`;
+      }
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    // ==========================================
+    // GAME INITIALIZATION ON DOM LOAD
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      CanvasEngine.init();
+      initTutorialCalculator();
+      generateTutorialQuestion();
+    });
+  </script>
+</body>
+
+</html>
