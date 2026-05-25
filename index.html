@@ -3,27 +3,52 @@
 
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-P6B9HYR0X9"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P6B9HYR0X9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-  gtag('config', 'G-P6B9HYR0X9');
-</script>
+    gtag('config', 'G-P6B9HYR0X9');
+  </script>
   <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-N7537Q58');</script>
-<!-- End Google Tag Manager -->
-  
+  <script>
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-N7537Q58');
+  </script>
+  <!-- End Google Tag Manager -->
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reto Resistencia Perú</title>
+  <title>Reto Resistencia Perú - V11</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    :root {
+      --base-font-xs: 8px;
+      --base-font-sm: 9px;
+      --base-font-md: 10px;
+      --base-font-lg: 12px;
+      --base-font-xl: 14px;
+      --base-font-2xl: 16px;
+      --base-font-3xl: 18px;
+    }
+
+    body.large-font {
+      --base-font-xs: 10px;
+      --base-font-sm: 11px;
+      --base-font-md: 12px;
+      --base-font-lg: 14px;
+      --base-font-xl: 16px;
+      --base-font-2xl: 18px;
+      --base-font-3xl: 20px;
+    }
 
     * {
       box-sizing: border-box;
@@ -44,10 +69,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       overflow: hidden;
       position: relative;
     }
+
     <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7537Q58"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N7537Q58" height="0" width="0"
+        style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
     /* CRT Scanline and Flicker Overlay */
     body::after {
@@ -117,7 +143,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .neon-title {
       color: #ff007f;
       text-shadow: 0 0 8px #ff007f;
-      font-size: 16px;
+      font-size: var(--base-font-3xl);
       margin-bottom: 8px;
       line-height: 1.4;
     }
@@ -164,7 +190,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       padding: 12px;
       width: 100%;
       cursor: pointer;
-      font-size: 9px;
+      font-size: var(--base-font-md);
       text-transform: uppercase;
       box-shadow: 0 4px 0 #000;
       border-radius: 4px;
@@ -227,10 +253,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       align-items: center;
       border-radius: 4px;
       box-shadow: 0 4px 0 #000;
-      transition: transform 0.1s;
+      transition: transform 0.1s, box-shadow 0.1s;
     }
 
     #audio-toggle:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #000;
+    }
+
+    /* Global floating Font Size button */
+    #font-toggle {
+      position: fixed;
+      top: 15px;
+      right: 65px;
+      z-index: 1000;
+      width: 40px;
+      height: 40px;
+      background: #111;
+      border: 3px solid #ff00ff;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      box-shadow: 0 4px 0 #000;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    #font-toggle:hover {
+      background-color: #200028;
+      border-color: #ff33ff;
+      box-shadow: 0 4px 0 #000, 0 0 8px rgba(255, 0, 255, 0.4);
+    }
+
+    #font-toggle:active {
       transform: translateY(2px);
       box-shadow: 0 2px 0 #000;
     }
@@ -348,7 +404,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 8px;
+      font-size: var(--base-font-sm);
       color: #fff;
       text-shadow: 1px 1px 1px #000;
       pointer-events: none;
@@ -372,7 +428,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     .band-sel-btn {
-      font-size: 7px;
+      font-size: var(--base-font-xs);
       padding: 8px 4px;
       border: 2px solid #555;
       background-color: #222;
@@ -400,7 +456,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     .color-btn {
       font-family: 'Press Start 2P', cursive;
-      font-size: 7px;
+      font-size: var(--base-font-xs);
       padding: 8px 1px;
       text-align: center;
       border: 2px solid #444;
@@ -441,7 +497,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     .quote-text {
-      font-size: 7px;
+      font-size: var(--base-font-xs);
       line-height: 1.6;
       color: #fff;
       margin-bottom: 10px;
@@ -465,7 +521,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       width: 100%;
       top: 180px;
       line-height: 1.8;
-      font-size: 8px;
+      font-size: var(--base-font-sm);
       color: #fff;
       text-align: center;
     }
@@ -490,16 +546,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </svg>
   </div>
 
+  <div id="font-toggle" onclick="toggleFontSize()" title="Cambiar tamaño de letra">
+    <span style="font-family: 'Press Start 2P', cursive; font-size: 14px; font-weight: bold; color: #ff00ff; text-shadow: 0 0 5px #ff00ff;">A</span>
+  </div>
+
   <div id="game-container">
     <!-- Pantalla Inicial y Tutorial -->
     <div id="start-screen">
       <h1 class="neon-title">RETO RESISTENCIA PERÚ</h1>
-      <p style="font-size: 7px; text-align: center; color: #00e5ff; margin-bottom: 15px; line-height: 1.4;">
+      <p style="font-size: var(--base-font-xs); text-align: center; color: #00e5ff; margin-bottom: 15px; line-height: 1.4;">
         Aprende el código de colores y viaja por el Perú: LIMA → CUSCO → TARAPOTO
       </p>
 
+      <!-- Training Geolocation Briefing Badge -->
+      <div id="tutorial-location-badge" style="text-align: center; margin-bottom: 15px; background: rgba(0, 229, 255, 0.12); border: 2px dashed #00e5ff; padding: 10px; border-radius: 6px; box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);">
+        <div style="color: #00e5ff; font-size: var(--base-font-xs); text-shadow: 1px 1px 0px #000; letter-spacing: 1px; margin-bottom: 4px;">
+          📍 LOCALIZACIÓN DE ENTRENAMIENTO
+        </div>
+        <div style="color: #fff; font-size: var(--base-font-md); text-shadow: 0 0 5px #00e5ff; font-weight: bold; letter-spacing: 1.5px;">
+          ISLA SAN LORENZO - CALLAO
+        </div>
+      </div>
+
       <div class="tutorial-guide">
-        <h2 style="font-size: 8px; color: #ff00ff; text-align: center; margin-bottom: 10px;">GUÍA INTERACTIVA</h2>
+        <h2 style="font-size: var(--base-font-sm); color: #ff00ff; text-align: center; margin-bottom: 10px;">GUÍA INTERACTIVA</h2>
 
         <!-- Resistor Calculator Preview -->
         <div class="resistor-container">
@@ -515,7 +585,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <!-- Calculated Value Text -->
         <div id="tut-calc-display"
-          style="font-size: 7px; text-align: center; color: #fff; margin-bottom: 12px; line-height: 1.5;">
+          style="font-size: var(--base-font-xs); text-align: center; color: #fff; margin-bottom: 12px; line-height: 1.5;">
           Valor: <span style="color:#00e5ff; font-weight:bold;">1.0 kΩ</span><br>
           (1ª: Marrón (1) | 2ª: Negro (0) | Mult: Rojo (x100))
         </div>
@@ -533,7 +603,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <!-- Test Question to Start -->
       <div style="border: 2px dashed #ff00ff; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.5);">
-        <h3 style="font-size: 8px; color: #ff00ff; margin-top: 0; margin-bottom: 10px;">PRUEBA TÉCNICA (1 PREGUNTA)</h3>
+        <h3 style="font-size: var(--base-font-sm); color: #ff00ff; margin-top: 0; margin-bottom: 10px;">PRUEBA TÉCNICA (1 PREGUNTA)</h3>
         <div class="resistor-container">
           <div class="lead-left"></div>
           <div class="resistor-body" id="test-resistor">
@@ -544,13 +614,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="lead-right"></div>
         </div>
-        <div style="font-size: 7px; text-align: center; margin-bottom: 8px; color: #aaa;">Indica el valor correcto:
+        <div style="font-size: var(--base-font-xs); text-align: center; margin-bottom: 8px; color: #aaa;">Indica el valor correcto:
         </div>
         <div id="test-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
 
         <!-- Area visible post-answer success -->
         <div id="tutorial-completed-area" class="hidden" style="text-align: center; margin-top: 12px;">
-          <p style="font-size: 7px; color: #00ffaa; margin-bottom: 8px;">¡Correcto! Tutorial superado con éxito.</p>
+          <p style="font-size: var(--base-font-xs); color: #00ffaa; margin-bottom: 8px;">¡Correcto! Tutorial superado con éxito.</p>
           <div style="display: flex; gap: 8px;">
             <button class="share-btn" onclick="shareProgress('tutorial')" style="flex: 1; margin: 0;">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"
@@ -569,11 +639,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- Pantalla de Juego Activo -->
     <div id="game-screen" class="hidden">
       <div id="city-banner"
-        style="color: #ff00ff; font-size: 14px; margin-bottom: 8px; text-shadow: 2px 2px 0px #000; text-align: center;">
+        style="color: #ff00ff; font-size: var(--base-font-2xl); margin-bottom: 8px; text-shadow: 2px 2px 0px #000; text-align: center;">
         LIMA</div>
 
       <div
-        style="display: flex; justify-content: space-between; font-size: 7px; color: #00e5ff; margin-bottom: 8px; border-bottom: 2px solid #33ff33; padding-bottom: 6px;">
+        style="display: flex; justify-content: space-between; font-size: var(--base-font-xs); color: #00e5ff; margin-bottom: 8px; border-bottom: 2px solid #33ff33; padding-bottom: 6px;">
         <div>PTS: <span id="score-val">0</span></div>
         <div style="display: flex; align-items: center;">VIDAS: <span id="lives-val"
             style="display: flex; align-items: center; margin-left: 4px;"></span></div>
@@ -596,15 +666,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <p id="question-text"
-        style="font-size: 8px; text-align: center; margin-bottom: 12px; line-height: 1.4; color: #fff;">¿Cuál es el
+        style="font-size: var(--base-font-sm); text-align: center; margin-bottom: 12px; line-height: 1.4; color: #fff;">¿Cuál es el
         valor de esta resistencia?</p>
       <div id="game-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
     </div>
 
     <!-- Pantalla de Game Over -->
     <div id="game-over-screen" class="hidden" style="text-align: center;">
-      <h2 style="font-size: 16px; color: #ff0000; text-shadow: 0 0 6px #ff0000; margin-bottom: 15px;">FIN DEL JUEGO</h2>
-      <p id="game-over-msg" style="font-size: 7px; line-height: 1.5; color: #fff; margin-bottom: 20px;"></p>
+      <h2 style="font-size: var(--base-font-3xl); color: #ff0000; text-shadow: 0 0 6px #ff0000; margin-bottom: 15px;">FIN DEL JUEGO</h2>
+      <p id="game-over-msg" style="font-size: var(--base-font-xs); line-height: 1.5; color: #fff; margin-bottom: 20px;"></p>
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <button class="share-btn" onclick="shareProgress('gameover')">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"
@@ -621,13 +691,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="credits-screen" class="hidden"
       style="text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
       <div>
-        <h2 class="neon-title" style="font-size: 13px;">RETO RESISTENCIA PERÚ</h2>
-        <div style="font-size: 7px; color: #00e5ff; margin-bottom: 5px;">VICTORIA ABSOLUTA DEL JUEGO</div>
+        <h2 class="neon-title" style="font-size: var(--base-font-xl);">RETO RESISTENCIA PERÚ</h2>
+        <div style="font-size: var(--base-font-xs); color: #00e5ff; margin-bottom: 5px;">VICTORIA ABSOLUTA DEL JUEGO</div>
       </div>
 
       <div class="credits-viewport">
         <div id="credits-scroller">
-          <div style="color: #ff00ff; font-weight: bold; margin-bottom: 12px; font-size: 9px;">CRÉDITOS</div>
+          <div style="color: #ff00ff; font-weight: bold; margin-bottom: 12px; font-size: var(--base-font-md);">CRÉDITOS</div>
 
           <div style="color: #00e5ff; margin-top: 10px;">GUIONISTA</div>
           <div style="color: #fff; margin-bottom: 10px;">IntegraVision Studio</div>
@@ -638,7 +708,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div style="color: #00e5ff; margin-top: 10px;">PROGRAMADOR DEL SISTEMA</div>
           <div style="color: #fff; margin-bottom: 10px;">Gemini</div>
 
-          <div style="color: #ff00ff; margin-top: 15px; font-size: 8px;">¡GRACIAS POR JUGAR!</div>
+          <div style="color: #ff00ff; margin-top: 15px; font-size: var(--base-font-sm);">¡GRACIAS POR JUGAR!</div>
         </div>
       </div>
 
@@ -658,8 +728,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="modal-overlay" class="modal-overlay hidden">
       <div class="modal-content">
         <h2 id="modal-title"
-          style="font-size: 11px; color: #ff00ff; text-align: center; margin-top: 0; margin-bottom: 12px;">¡NIVEL
-          COMPLETADO!</h2>
+          style="font-size: var(--base-font-lg); color: #ff00ff; text-align: center; margin-top: 0; margin-bottom: 12px;">¡NIVEL COMPLETADO!</h2>
         <div id="modal-quotes-container"
           style="margin: 12px 0; border: 2px dashed #00e5ff; padding: 10px; border-radius: 6px; background-color: rgba(0, 0, 0, 0.7);">
         </div>
@@ -2008,6 +2077,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       AudioManager.playBGMForLevel(lvl);
 
       document.getElementById('modal-overlay').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
       updateGameUI();
       generateGameQuestion();
     }
@@ -2110,6 +2180,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     // ==========================================
+    // ACCESS ACCESSIBILITY & FONTS MODULE
+    // ==========================================
+    function toggleFontSize() {
+      const body = document.body;
+      const isLarge = body.classList.toggle('large-font');
+      localStorage.setItem('game-large-font', isLarge ? 'true' : 'false');
+      
+      // Audible feedback for resizing action
+      AudioManager.playSFX('success');
+    }
+
+    // ==========================================
     // SOCIAL INTEGRATION MODULE (WhatsApp Sharing)
     // ==========================================
     function shareProgress(type) {
@@ -2140,6 +2222,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       CanvasEngine.init();
       initTutorialCalculator();
       generateTutorialQuestion();
+
+      // Load saved font size preference from localStorage
+      if (localStorage.getItem('game-large-font') === 'true') {
+        document.body.classList.add('large-font');
+      }
     });
   </script>
 </body>
